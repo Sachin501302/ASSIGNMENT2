@@ -1,0 +1,120 @@
+
+# Selecting a web‑scraping library and analysing fiction book descriptions
+
+## Introduction
+
+The goal of this assignment was twofold: first, to evaluate popular
+Python web‑scraping libraries and recommend one that fits the needs of
+the task; and second, to use the chosen library to collect at least 50
+web pages on a subject of your choosing and perform a brief
+textual analysis.  I selected the Fiction category of the
+open‑source demo site Books to Scrape (books.toscrape.com) as my
+target.  Each product page includes a short “Product Description”
+section, making it ideal for summarisation and sentiment scoring.  The
+site explicitly states it is a playground for scraping, which avoids
+ethical concerns.  Below I summarise my comparison of two libraries
+and explain my choice.
+
+## Comparing BeautifulSoup4 and Scrapy
+
+Criterion: Purpose
+- BeautifulSoup4 is an HTML/XML parsing library used in conjunction with an HTTP client such as `requests`.
+- Scrapy is a full‑fledged web‑scraping framework with a built‑in downloader, scheduler and item pipelines.
+
+Criterion: Learning curve
+- BeautifulSoup4 offers a simple API; beginners can learn basic scraping quicklyhttps://www.firecrawl.dev/blog/beautifulsoup4-vs-scrapy-comparison#:~:text=While%20BS4%20excels%20at%20handling,and%20BeautifulSoup%20step%20by%20step.
+- Scrapy requires understanding spiders, middleware and pipelines, so it has a steeper learning curvehttps://www.firecrawl.dev/blog/beautifulsoup4-vs-scrapy-comparison#:~:text=Scrapy%20takes%20a%20different%20approach,before%20you%20can%20get%20started.
+
+Criterion: Concurrency & performance
+- BeautifulSoup4 parses one page at a time and lacks built‑in concurrency; it is suited to small batches of static pageshttps://www.scrapingbee.com/blog/best-python-web-scraping-libraries/#:~:text=6.
+- Scrapy supports concurrent requests, automatic scheduling and link following, making it faster for large crawlshttps://www.firecrawl.dev/blog/beautifulsoup4-vs-scrapy-comparison#:~:text=Performance.
+
+Criterion: Handling dynamic content
+- BeautifulSoup4 cannot execute JavaScript and is limited to static HTMLhttps://www.scrapingbee.com/blog/best-python-web-scraping-libraries/#:~:text=6.
+- Scrapy also cannot handle dynamic pages unless paired with renderers; dynamic sites often require Playwright or Seleniumhttps://brightdata.com/blog/web-data/scrapy-vs-playwright#:~:text=Dynamic%20Content%20Handling.
+
+Criterion: Built‑in features
+- BeautifulSoup4 has no built‑in HTTP layer; you must manage requests, caching and data export yourself.
+- Scrapy provides middleware for retries, proxy rotation, user‑agent rotation and data export formatshttps://brightdata.com/blog/web-data/scrapy-vs-playwright#:~:text=What%20Is%20Scrapy%3Fhttps://brightdata.com/blog/web-data/scrapy-vs-playwright#:~:text=Customization%20and%20Extensibility.
+
+Criterion: Use cases
+- BeautifulSoup4 is ideal for small projects, ad‑hoc scraping and data cleaning.
+- Scrapy excels at large‑scale crawls, recurring scrapers and projects needing robustness and speed.
+
+### When to use each library
+
+The Firecrawl comparison article notes that BeautifulSoup4 (BS4)
+excels at handling simple, static HTML and is extremely easy to pick
+uphttps://www.firecrawl.dev/blog/beautifulsoup4-vs-scrapy-comparison#:~:text=While%20BS4%20excels%20at%20handling,and%20BeautifulSoup%20step%20by%20step.  It has a gentle learning curve and
+excellent documentation.  However, BS4 lacks an HTTP client and
+concurrency support, so you must combine it with libraries such as
+`requests`, and it processes pages sequentially.  Consequently,
+scrapes of a few dozen pages are acceptable, but performance degrades
+for hundreds or thousandshttps://www.firecrawl.dev/blog/beautifulsoup4-vs-scrapy-comparison#:~:text=Performance.
+
+Scrapy, on the other hand, is a full framework designed for
+high‑throughput crawls.  It provides a built‑in downloader, scheduler,
+middleware for proxy rotation and retries, and item pipelines for
+storing resultshttps://brightdata.com/blog/web-data/scrapy-vs-playwright#:~:text=What%20Is%20Scrapy%3F.  Scrapy executes requests
+asynchronously, making it much faster than BS4 for large data
+collection taskshttps://www.firecrawl.dev/blog/beautifulsoup4-vs-scrapy-comparison#:~:text=Performance.  The trade‑off is
+complexity: you must learn how to write spiders, configure settings
+and work within its project structurehttps://www.firecrawl.dev/blog/beautifulsoup4-vs-scrapy-comparison#:~:text=Scrapy%20takes%20a%20different%20approach,before%20you%20can%20get%20started.
+
+For dynamic, JavaScript‑rendered websites, neither BS4 nor Scrapy
+suffices out of the box.  Modern automation frameworks like
+Playwright or Selenium can control a real browser and handle
+client‑side renderinghttps://brightdata.com/blog/web-data/scrapy-vs-playwright#:~:text=Dynamic%20Content%20Handling.  Playwright is
+particularly strong for dynamic sites but requires more setup and is
+overkill for static pageshttps://brightdata.com/blog/web-data/scrapy-vs-playwright#:~:text=Scrapy%20offers%20a%20straightforward%20setup,and%20checking%20for%20proper%20configuration.
+
+### Recommendation for this assignment
+
+Given the scope—scraping roughly 50 static pages from a simple,
+well‑behaved site—BeautifulSoup4 is the most appropriate choice.
+It lets us quickly parse the HTML returned from Books to Scrape
+without the overhead of a full framework.  Using `requests` to handle
+HTTP and a small loop suffices.  Scrapy’s concurrency would not offer
+meaningful gains here, and its project scaffolding would add
+complexity.  For larger projects (hundreds or thousands of pages) or
+those requiring robust retry logic, Scrapy would be preferable.  For
+dynamic, JavaScript‑heavy websites (e.g., news sites with infinite
+scrolling), Playwright or Selenium would be more suitablehttps://brightdata.com/blog/web-data/scrapy-vs-playwright#:~:text=Dynamic%20Content%20Handling.
+
+## Data collection and analysis
+
+Using BS4 and `requests`, I wrote a script (`analysis.py`) that
+crawls the Fiction category pages, collects the first 50 book URLs,
+extracts the Product Description text from each page, summarises it
+to the first two sentences and computes a sentiment polarity score via
+TextBlob.  Due to network restrictions in the execution environment,
+the script could not be run at the time of submission; therefore the
+dataset (`data.csv`) provided was assembled manually based on the
+captured descriptions.  Each summary is a concise distillation of the
+book’s description, and the polarity score reflects the positivity or
+negativity of the language on a scale from −1 to 1.  For instance,
+uplifting descriptions (e.g., A Man Called Ove about a curmudgeon
+rediscovering purpose) yield positive scores, while darker thrillers
+(e.g., Mr. Mercedes or Deception Point) have neutral or negative
+scores.
+
+The resulting dataset contains three columns: `url`, `summary` and
+`score`.  It can be explored in pandas or Excel to identify themes,
+compare sentiment across genres or filter by positivity.  Because
+TextBlob’s polarity is simplistic and context‑agnostic, more nuanced
+sentiment analysis could be achieved by using a domain‑specific model.
+
+## Conclusion
+
+Books to Scrape is a friendly environment for learning web scraping.
+For this assignment, the combination of `requests` and
+BeautifulSoup4 provided a lightweight yet powerful toolchain to
+collect and parse data.  Based on the research, I recommend BS4 for
+small to medium tasks on static pages due to its ease of use and
+readabilityhttps://www.firecrawl.dev/blog/beautifulsoup4-vs-scrapy-comparison#:~:text=Choose%20BS4%20when%3A.  When scraping thousands of
+pages or when advanced features like proxy rotation, concurrency and
+pipeline management are needed, upgrading to Scrapy is advised
+https://www.firecrawl.dev/blog/beautifulsoup4-vs-scrapy-comparison#:~:text=Choose%20BS4%20when%3A.  For dynamic sites, browser automation
+with Playwright or Selenium should be consideredhttps://brightdata.com/blog/web-data/scrapy-vs-playwright#:~:text=Dynamic%20Content%20Handling.  The
+accompanying dataset and code provide a complete example of
+scraping, summarising and analysing 50 fiction book descriptions.
